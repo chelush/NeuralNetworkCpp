@@ -1,0 +1,16 @@
+# Текстовые файлы — единый стиль переносов
+* text=auto eol=lf
+
+# Исходники
+*.h text
+*.hpp text
+*.c text
+*.cpp text
+*.cc text
+*.md text
+CMakeLists.txt text
+*.cmake text
+
+# Бинарники не трогать
+*.png binary
+*.pdf binary
