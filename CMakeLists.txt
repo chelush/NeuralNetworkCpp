@@ -14,4 +14,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #   train       — цикл обучения, батчи, метрики
 #   app         — CLI / демо
 
+# Eigen (header-only)
+include(FetchContent)
+FetchContent_Declare(
+  Eigen
+  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+  GIT_TAG        3.4.0
+)
+FetchContent_MakeAvailable(Eigen)
+
 add_executable(demo app/main.cpp)
+target_link_libraries(demo PRIVATE Eigen3::Eigen)
