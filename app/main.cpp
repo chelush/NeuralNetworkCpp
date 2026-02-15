@@ -7,9 +7,9 @@
 
 int main() {
   nn::Network net;
-  net.add(std::make_unique<nn::Linear>(2, 4));
-  net.add(std::make_unique<nn::Sigmoid>());
-  net.add(std::make_unique<nn::Linear>(4, 1));
+  net.add(nn::Linear(nn::In{2}, nn::Out{4}));
+  net.add(nn::Sigmoid());
+  net.add(nn::Linear(nn::In{4}, nn::Out{1}));
 
   nn::MatrixXf x(1, 2);
   x << 0.5f, -0.3f;

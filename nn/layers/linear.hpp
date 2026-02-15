@@ -7,7 +7,7 @@ namespace nn {
 
 class Linear : public Layer {
 public:
-  Linear(int in_features, int out_features);
+  Linear(In in_dim, Out out_dim);
   MatrixXf forward(const MatrixXf& x) override;
   MatrixXf backward(const MatrixXf& grad_out) override;
 
@@ -19,8 +19,8 @@ public:
   const VectorXf& grad_bias() const { return db_; }
 
 private:
-  int in_features_;
-  int out_features_;
+  std::size_t in_features_;
+  std::size_t out_features_;
   MatrixXf W_;
   VectorXf b_;
   MatrixXf dW_;
