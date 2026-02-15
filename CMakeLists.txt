@@ -29,6 +29,7 @@ set(SOURCES
   nn/layers/sigmoid.cpp
   nn/loss/mse.cpp
   nn/model/network.cpp
+  nn/optim/sgd.cpp
 )
 add_executable(demo ${SOURCES})
 target_include_directories(demo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

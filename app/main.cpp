@@ -2,6 +2,7 @@
 #include "nn/layers/sigmoid.hpp"
 #include "nn/loss/mse.hpp"
 #include "nn/model/network.hpp"
+#include "nn/optim/sgd.hpp"
 #include <iostream>
 
 int main() {
@@ -15,9 +16,21 @@ int main() {
   nn::MatrixXf y(1, 1);
   y << 0.8f;
 
-  nn::MatrixXf pred = net.forward(x);
   nn::MSE mse;
-  float loss = mse.value(pred, y);
-  std::cout << "pred = " << pred(0, 0) << ", y = " << y(0, 0) << ", loss = " << loss << "\n";
+  nn::SGD sgd;
+  const float lr = 0.5f;
+  const int steps = 50;
+
+  for (int step = 0; step < steps; ++step) {
+    nn::MatrixXf pred = net.forward(x);
+    float loss = mse.value(pred, y);
+    if (step % 10 == 0)
+      std::cout << "step " << step << " loss = " << loss << "\n";
+    nn::MatrixXf grad = mse.backward(pred, y);
+    net.backward(grad);
+    sgd.step(net, lr);
+  }
+  nn::MatrixXf pred = net.forward(x);
+  std::cout << "final pred = " << pred(0, 0) << ", y = " << y(0, 0) << "\n";
   return 0;
 }
