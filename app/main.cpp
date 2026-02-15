@@ -1,12 +1,23 @@
-#include <Eigen/Dense>
+#include "nn/layers/linear.hpp"
+#include "nn/layers/sigmoid.hpp"
+#include "nn/loss/mse.hpp"
+#include "nn/model/network.hpp"
 #include <iostream>
 
 int main() {
-  Eigen::MatrixXf A(2, 2);
-  A << 1, 2, 3, 4;
-  Eigen::VectorXf v(2);
-  v << 1, 0;
-  Eigen::VectorXf u = A * v;
-  std::cout << "NeuralNetwork (Eigen OK): A*v = [" << u(0) << ", " << u(1) << "]\n";
+  nn::Network net;
+  net.add(std::make_unique<nn::Linear>(2, 4));
+  net.add(std::make_unique<nn::Sigmoid>());
+  net.add(std::make_unique<nn::Linear>(4, 1));
+
+  nn::MatrixXf x(1, 2);
+  x << 0.5f, -0.3f;
+  nn::MatrixXf y(1, 1);
+  y << 0.8f;
+
+  nn::MatrixXf pred = net.forward(x);
+  nn::MSE mse;
+  float loss = mse.value(pred, y);
+  std::cout << "pred = " << pred(0, 0) << ", y = " << y(0, 0) << ", loss = " << loss << "\n";
   return 0;
 }

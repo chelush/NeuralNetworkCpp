@@ -23,5 +23,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Eigen)
 
-add_executable(demo app/main.cpp)
+set(SOURCES
+  app/main.cpp
+  nn/layers/linear.cpp
+  nn/layers/sigmoid.cpp
+  nn/loss/mse.cpp
+  nn/model/network.cpp
+)
+add_executable(demo ${SOURCES})
+target_include_directories(demo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(demo PRIVATE Eigen3::Eigen)
