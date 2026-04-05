@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Архитектура (по ТЗ):
-#   core/math   — алиасы и утилиты на Eigen
+#   core/math   — Linalg.h
 #   nn/layers   — Linear + активации
 #   nn/loss     — MSE / BCE
 #   nn/optim    — SGD / Adam
@@ -25,10 +25,14 @@ FetchContent_MakeAvailable(Eigen)
 
 set(SOURCES
   app/main.cpp
+  core/random/random.cpp
+  train/train.cpp
+  nn/layers/layer.cpp
   nn/layers/linear.cpp
   nn/layers/sigmoid.cpp
   nn/loss/mse.cpp
   nn/model/network.cpp
+  nn/model/network_builder.cpp
   nn/optim/sgd.cpp
 )
 add_executable(demo ${SOURCES})

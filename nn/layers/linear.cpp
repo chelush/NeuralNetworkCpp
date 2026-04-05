@@ -1,36 +1,55 @@
 #include "nn/layers/linear.hpp"
-#include <Eigen/Dense>
 #include <cassert>
-#include <cmath>
-#include <random>
 
 namespace nn {
 
-Linear::Linear(In in_dim, Out out_dim)
-    : in_features_(in_dim.value), out_features_(out_dim.value),
-      W_(static_cast<Eigen::Index>(out_dim.value), static_cast<Eigen::Index>(in_dim.value)),
-      b_(static_cast<Eigen::Index>(out_dim.value)),
-      dW_(static_cast<Eigen::Index>(out_dim.value), static_cast<Eigen::Index>(in_dim.value)),
-      db_(static_cast<Eigen::Index>(out_dim.value)) {
-  assert(in_features_ > 0 && out_features_ > 0);
-  std::default_random_engine rng(42);
-  std::uniform_real_distribution<float> dist(-0.1f, 0.1f);
-  for (int i = 0; i < W_.size(); ++i)
-    W_.data()[i] = dist(rng);
-  b_.setZero();
+Linear::Linear(In in_dim, Out out_dim, Random& rnd, bool mean_loss_gradient_scaling)
+    : mean_loss_gradient_scaling_(mean_loss_gradient_scaling),
+      W_(rnd.uniform_matrix(out_dim, in_dim)),
+      b_(rnd.uniform_vector(out_dim)) {
+    assert(in_dim.value > 0 && out_dim.value > 0);
 }
 
-MatrixXf Linear::forward(const MatrixXf& x) {
-  assert(static_cast<std::size_t>(x.cols()) == in_features_);
-  x_cache_ = x;
-  return x * W_.transpose() + b_.transpose().replicate(x.rows(), 1);
+MatrixXf Linear::forward(MatrixXf&& x) {
+    assert(x.cols() == W_.cols());
+    if (!cache_)
+        cache_ = std::make_unique<Cache>();
+    cache_->x = std::move(x);
+    return (cache_->x * W_.transpose()).rowwise() + b_.transpose();
 }
 
-MatrixXf Linear::backward(const MatrixXf& grad_out) {
-  assert(grad_out.rows() == x_cache_.rows() && static_cast<std::size_t>(grad_out.cols()) == out_features_);
-  dW_ = grad_out.transpose() * x_cache_;
-  db_ = grad_out.colwise().sum().transpose();
-  return grad_out * W_;
+MatrixXf Linear::backward(MatrixXf&& grad_out) {
+    assert(cache_ && "forward() must be called before backward()");
+    assert(grad_out.rows() == cache_->x.rows() && grad_out.cols() == W_.rows());
+    if (mean_loss_gradient_scaling_)
+        grad_out.array() *= (1.0f / grad_out.size());
+    cache_->dW = grad_out.transpose() * cache_->x;
+    cache_->db = grad_out.colwise().sum().transpose();
+    return std::move(grad_out) * W_;
+}
+
+void Linear::apply_gradients(float learning_rate) {
+    assert(cache_ && "backward() must be called before apply_gradients()");
+    W_ -= learning_rate * cache_->dW;
+    b_ -= learning_rate * cache_->db;
+}
+
+void Linear::zero_gradients() {
+    if (!cache_)
+        return;
+    cache_->dW.setZero();
+    cache_->db.setZero();
+}
+
+void Linear::clear_cache() {
+    cache_.reset();
+}
+
+const MatrixXf& Linear::weights() const {
+    return W_;
+}
+const VectorXf& Linear::bias() const {
+    return b_;
 }
 
 }  // namespace nn

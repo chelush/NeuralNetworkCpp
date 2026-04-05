@@ -1,26 +1,31 @@
 #pragma once
 
-#include "core/math/types.hpp"
-#include "nn/layers/linear.hpp"
-#include "nn/layers/sigmoid.hpp"
-#include <functional>
-#include <variant>
+#include "nn/layers/layer.hpp"
 #include <vector>
 
 namespace nn {
 
-using LayerVariant = std::variant<Linear, Sigmoid>;
+class NetworkBuilder;
 
 class Network {
+    friend class NetworkBuilder;
+
 public:
-  void add(Linear layer);
-  void add(Sigmoid layer);
-  MatrixXf forward(const MatrixXf& x);
-  MatrixXf backward(const MatrixXf& grad_out);
-  void for_each_linear(std::function<void(Linear&)> f);
+    Network(const Network&) = delete;
+    Network& operator=(const Network&) = delete;
+    Network(Network&&) noexcept;
+    Network& operator=(Network&&) noexcept;
+
+    MatrixXf forward(MatrixXf activations);
+    MatrixXf backward(MatrixXf grad);
+    void apply_gradients(float learning_rate);
+    void zero_gradients();
+    void clear_cache();
 
 private:
-  std::vector<LayerVariant> layers_;
+    explicit Network(std::vector<Layer>&& layers);
+
+    std::vector<Layer> layers_;
 };
 
 }  // namespace nn

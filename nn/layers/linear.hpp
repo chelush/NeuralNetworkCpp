@@ -1,31 +1,34 @@
 #pragma once
 
-#include "core/math/types.hpp"
-#include "nn/layers/layer.hpp"
+#include "core/random/random.hpp"
+#include <memory>
 
 namespace nn {
 
-class Linear : public Layer {
+class Linear {
 public:
-  Linear(In in_dim, Out out_dim);
-  MatrixXf forward(const MatrixXf& x) override;
-  MatrixXf backward(const MatrixXf& grad_out) override;
+    Linear(In in_dim, Out out_dim, Random& rnd, bool mean_loss_gradient_scaling);
 
-  const MatrixXf& weights() const { return W_; }
-  const VectorXf& bias() const { return b_; }
-  MatrixXf& weights() { return W_; }
-  VectorXf& bias() { return b_; }
-  const MatrixXf& grad_weights() const { return dW_; }
-  const VectorXf& grad_bias() const { return db_; }
+    MatrixXf forward(MatrixXf&& x);
+    MatrixXf backward(MatrixXf&& grad_out);
+    void apply_gradients(float learning_rate);
+    void zero_gradients();
+    void clear_cache();
+
+    const MatrixXf& weights() const;
+    const VectorXf& bias() const;
 
 private:
-  std::size_t in_features_;
-  std::size_t out_features_;
-  MatrixXf W_;
-  VectorXf b_;
-  MatrixXf dW_;
-  VectorXf db_;
-  MatrixXf x_cache_;
+    bool mean_loss_gradient_scaling_;
+    MatrixXf W_;
+    VectorXf b_;
+
+    struct Cache {
+        MatrixXf x;
+        MatrixXf dW;
+        VectorXf db;
+    };
+    std::unique_ptr<Cache> cache_;
 };
 
 }  // namespace nn
