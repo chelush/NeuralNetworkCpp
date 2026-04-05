@@ -1,13 +1,10 @@
 #include "nn/optim/sgd.hpp"
-#include "nn/layers/linear.hpp"
 
 namespace nn {
 
-void SGD::step(Network& net, float lr) {
-  net.for_each_linear([lr](Linear& linear) {
-    linear.weights() -= lr * linear.grad_weights();
-    linear.bias() -= lr * linear.grad_bias();
-  });
+Network SGD::apply_gradient_step(float learning_rate, Network net) {
+    net.apply_gradients(learning_rate);
+    return net;
 }
 
 }  // namespace nn

@@ -1,36 +1,43 @@
 #include "nn/model/network.hpp"
+#include <cassert>
 
 namespace nn {
 
-void Network::add(Linear layer) {
-  layers_.push_back(std::move(layer));
+Network::Network(std::vector<Layer>&& layers) : layers_(std::move(layers)) {
+    assert(!layers_.empty() && "Network must be built with at least one layer");
 }
 
-void Network::add(Sigmoid layer) {
-  layers_.push_back(std::move(layer));
+Network::Network(Network&&) noexcept = default;
+
+Network& Network::operator=(Network&&) noexcept = default;
+
+MatrixXf Network::forward(MatrixXf activations) {
+    assert(!layers_.empty());
+    for (auto& layer : layers_)
+        activations = layer.forward(std::move(activations));
+    return activations;
 }
 
-MatrixXf Network::forward(const MatrixXf& x) {
-  MatrixXf out = x;
-  for (auto& layer : layers_) {
-    out = std::visit([&out](auto& l) { return l.forward(out); }, layer);
-  }
-  return out;
+MatrixXf Network::backward(MatrixXf grad) {
+    assert(!layers_.empty());
+    for (auto it = layers_.rbegin(); it != layers_.rend(); ++it)
+        grad = it->backward(std::move(grad));
+    return grad;
 }
 
-MatrixXf Network::backward(const MatrixXf& grad_out) {
-  MatrixXf grad = grad_out;
-  for (auto it = layers_.rbegin(); it != layers_.rend(); ++it) {
-    grad = std::visit([&grad](auto& l) { return l.backward(grad); }, *it);
-  }
-  return grad;
+void Network::apply_gradients(float learning_rate) {
+    for (auto& layer : layers_)
+        layer.apply_gradients(learning_rate);
 }
 
-void Network::for_each_linear(std::function<void(Linear&)> f) {
-  for (auto& layer : layers_) {
-    if (auto* p = std::get_if<Linear>(&layer))
-      f(*p);
-  }
+void Network::zero_gradients() {
+    for (auto& layer : layers_)
+        layer.zero_gradients();
+}
+
+void Network::clear_cache() {
+    for (auto& layer : layers_)
+        layer.clear_cache();
 }
 
 }  // namespace nn

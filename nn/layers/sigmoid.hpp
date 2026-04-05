@@ -1,17 +1,23 @@
 #pragma once
 
-#include "core/math/types.hpp"
-#include "nn/layers/layer.hpp"
+#include "core/math/Linalg.h"
+#include <memory>
 
 namespace nn {
 
-class Sigmoid : public Layer {
+class Sigmoid {
 public:
-  MatrixXf forward(const MatrixXf& x) override;
-  MatrixXf backward(const MatrixXf& grad_out) override;
+    MatrixXf forward(MatrixXf&& x);
+    MatrixXf backward(MatrixXf&& grad_out);
+    void apply_gradients(float learning_rate);
+    void zero_gradients();
+    void clear_cache();
 
 private:
-  MatrixXf a_cache_;
+    struct Cache {
+        MatrixXf a;
+    };
+    std::unique_ptr<Cache> cache_;
 };
 
 }  // namespace nn

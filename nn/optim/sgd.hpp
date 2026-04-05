@@ -6,7 +6,7 @@ namespace nn {
 
 class SGD {
 public:
-  void step(Network& net, float lr);
+    Network apply_gradient_step(float learning_rate, Network net);
 };
 
 }  // namespace nn
