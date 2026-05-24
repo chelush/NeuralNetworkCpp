@@ -15,6 +15,11 @@ cmake --build build
 - `data/mnist_train.csv`
 - `data/mnist_test.csv`
 
+Скачать CSV можно отсюда:
+
+- [mnist_train.csv](https://pjreddie.com/media/files/mnist_train.csv)
+- [mnist_test.csv](https://pjreddie.com/media/files/mnist_test.csv)
+
 Формат строк: `label,pixel1,...,pixel784`.
 
 Пример запуска:
