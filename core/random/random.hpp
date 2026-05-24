@@ -18,9 +18,4 @@ private:
     std::mt19937& engine_;
 };
 
-class GRandom {
-public:
-    static Random& access();
-};
-
 }  // namespace nn

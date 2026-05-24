@@ -20,9 +20,3 @@ nn::VectorXf nn::Random::uniform_vector(nn::Out out) {
     fill_uniform_(v.data(), v.size());
     return v;
 }
-
-nn::Random& nn::GRandom::access() {
-    static std::mt19937 engine{42};
-    static nn::Random rnd{engine};
-    return rnd;
-}

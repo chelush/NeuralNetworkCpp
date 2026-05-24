@@ -1,17 +1,15 @@
 #include "nn/layers/linear.hpp"
-#include <cassert>
+#include "app/except.h"
 
 namespace nn {
 
-Linear::Linear(In in_dim, Out out_dim, Random& rnd, bool mean_loss_gradient_scaling)
-    : mean_loss_gradient_scaling_(mean_loss_gradient_scaling),
-      W_(rnd.uniform_matrix(out_dim, in_dim)),
-      b_(rnd.uniform_vector(out_dim)) {
-    assert(in_dim.value > 0 && out_dim.value > 0);
+Linear::Linear(In in_dim, Out out_dim, Random& rnd)
+    : W_(rnd.uniform_matrix(out_dim, in_dim)), b_(rnd.uniform_vector(out_dim)) {
+    NN_REQUIRE(in_dim.value > 0 && out_dim.value > 0, "Linear: dimensions must be positive");
 }
 
 MatrixXf Linear::forward(MatrixXf&& x) {
-    assert(x.cols() == W_.cols());
+    NN_REQUIRE(x.cols() == W_.cols(), "Linear::forward(): input feature count mismatch");
     if (!cache_)
         cache_ = std::make_unique<Cache>();
     cache_->x = std::move(x);
@@ -19,19 +17,12 @@ MatrixXf Linear::forward(MatrixXf&& x) {
 }
 
 MatrixXf Linear::backward(MatrixXf&& grad_out) {
-    assert(cache_ && "forward() must be called before backward()");
-    assert(grad_out.rows() == cache_->x.rows() && grad_out.cols() == W_.rows());
-    if (mean_loss_gradient_scaling_)
-        grad_out.array() *= (1.0f / grad_out.size());
+    NN_ASSERT(cache_ != nullptr, "Linear::backward(): forward() must be called first");
+    NN_REQUIRE(grad_out.rows() == cache_->x.rows() && grad_out.cols() == W_.rows(),
+               "Linear::backward(): gradient shape mismatch");
     cache_->dW = grad_out.transpose() * cache_->x;
     cache_->db = grad_out.colwise().sum().transpose();
     return std::move(grad_out) * W_;
-}
-
-void Linear::apply_gradients(float learning_rate) {
-    assert(cache_ && "backward() must be called before apply_gradients()");
-    W_ -= learning_rate * cache_->dW;
-    b_ -= learning_rate * cache_->db;
 }
 
 void Linear::zero_gradients() {
@@ -45,11 +36,31 @@ void Linear::clear_cache() {
     cache_.reset();
 }
 
+void Linear::apply_parameter_step(const MatrixXf& delta_weights, const VectorXf& delta_bias) {
+    NN_REQUIRE(delta_weights.rows() == W_.rows() && delta_weights.cols() == W_.cols(),
+               "Linear::apply_parameter_step(): delta_weights shape mismatch");
+    NN_REQUIRE(delta_bias.size() == b_.size(),
+               "Linear::apply_parameter_step(): delta_bias shape mismatch");
+    W_ += delta_weights;
+    b_ += delta_bias;
+}
+
 const MatrixXf& Linear::weights() const {
     return W_;
 }
+
 const VectorXf& Linear::bias() const {
     return b_;
+}
+
+const MatrixXf& Linear::grad_weights() const {
+    NN_ASSERT(cache_ != nullptr, "Linear::grad_weights(): backward() must be called first");
+    return cache_->dW;
+}
+
+const VectorXf& Linear::grad_bias() const {
+    NN_ASSERT(cache_ != nullptr, "Linear::grad_bias(): backward() must be called first");
+    return cache_->db;
 }
 
 }  // namespace nn

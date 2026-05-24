@@ -1,10 +1,10 @@
 #include "nn/model/network.hpp"
-#include <cassert>
+#include "app/except.h"
 
 namespace nn {
 
 Network::Network(std::vector<Layer>&& layers) : layers_(std::move(layers)) {
-    assert(!layers_.empty() && "Network must be built with at least one layer");
+    NN_REQUIRE(!layers_.empty(), "Network: must contain at least one layer");
 }
 
 Network::Network(Network&&) noexcept = default;
@@ -12,22 +12,17 @@ Network::Network(Network&&) noexcept = default;
 Network& Network::operator=(Network&&) noexcept = default;
 
 MatrixXf Network::forward(MatrixXf activations) {
-    assert(!layers_.empty());
+    NN_ASSERT(!layers_.empty(), "Network::forward(): network has no layers");
     for (auto& layer : layers_)
         activations = layer.forward(std::move(activations));
     return activations;
 }
 
 MatrixXf Network::backward(MatrixXf grad) {
-    assert(!layers_.empty());
+    NN_ASSERT(!layers_.empty(), "Network::backward(): network has no layers");
     for (auto it = layers_.rbegin(); it != layers_.rend(); ++it)
         grad = it->backward(std::move(grad));
     return grad;
-}
-
-void Network::apply_gradients(float learning_rate) {
-    for (auto& layer : layers_)
-        layer.apply_gradients(learning_rate);
 }
 
 void Network::zero_gradients() {
@@ -38,6 +33,26 @@ void Network::zero_gradients() {
 void Network::clear_cache() {
     for (auto& layer : layers_)
         layer.clear_cache();
+}
+
+std::vector<Linear*> Network::linear_layers() {
+    std::vector<Linear*> linear;
+    linear.reserve(layers_.size());
+    for (auto& layer : layers_) {
+        if (Linear* ptr = layer.as_linear(); ptr != nullptr)
+            linear.push_back(ptr);
+    }
+    return linear;
+}
+
+std::vector<const Linear*> Network::linear_layers() const {
+    std::vector<const Linear*> linear;
+    linear.reserve(layers_.size());
+    for (const auto& layer : layers_) {
+        if (const Linear* ptr = layer.as_linear(); ptr != nullptr)
+            linear.push_back(ptr);
+    }
+    return linear;
 }
 
 }  // namespace nn

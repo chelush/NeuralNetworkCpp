@@ -1,12 +1,12 @@
 #pragma once
 
-#include "nn/model/network.hpp"
+#include "nn/optim/optimizer.hpp"
 
 namespace nn {
 
-class SGD {
+class SGD final : public Optimizer {
 public:
-    Network apply_gradient_step(float learning_rate, Network net);
+    void step(Network& net, float learning_rate) override;
 };
 
 }  // namespace nn

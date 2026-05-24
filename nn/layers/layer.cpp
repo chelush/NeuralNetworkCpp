@@ -1,6 +1,7 @@
 #include "nn/layers/layer.hpp"
+#include "nn/layers/activation.hpp"
 #include "nn/layers/linear.hpp"
-#include "nn/layers/sigmoid.hpp"
+#include <type_traits>
 
 namespace nn {
 
@@ -8,9 +9,10 @@ struct Layer::Concept {
     virtual ~Concept() = default;
     virtual MatrixXf forward(MatrixXf&& activations) = 0;
     virtual MatrixXf backward(MatrixXf&& grad) = 0;
-    virtual void apply_gradients(float learning_rate) = 0;
     virtual void zero_gradients() = 0;
     virtual void clear_cache() = 0;
+    virtual Linear* as_linear() = 0;
+    virtual const Linear* as_linear() const = 0;
 };
 
 template <class T>
@@ -26,22 +28,29 @@ struct Layer::Model final : Layer::Concept {
     MatrixXf backward(MatrixXf&& grad) final {
         return data_.backward(std::move(grad));
     }
-    void apply_gradients(float learning_rate) final {
-        data_.apply_gradients(learning_rate);
-    }
     void zero_gradients() final {
         data_.zero_gradients();
     }
     void clear_cache() final {
         data_.clear_cache();
     }
+    Linear* as_linear() final {
+        if constexpr (std::is_same_v<T, Linear>)
+            return &data_;
+        return nullptr;
+    }
+    const Linear* as_linear() const final {
+        if constexpr (std::is_same_v<T, Linear>)
+            return &data_;
+        return nullptr;
+    }
 };
 
-Layer::Layer(Linear&& layer) : model_(std::make_unique<Model<Linear>>(std::move(layer))) {
+Layer::Layer(Activation&& activation)
+    : model_(std::make_unique<Model<Activation>>(std::move(activation))) {
 }
 
-Layer::Layer(Sigmoid&& activation)
-    : model_(std::make_unique<Model<Sigmoid>>(std::move(activation))) {
+Layer::Layer(Linear&& layer) : model_(std::make_unique<Model<Linear>>(std::move(layer))) {
 }
 
 Layer::Layer(Layer&&) noexcept = default;
@@ -58,16 +67,20 @@ MatrixXf Layer::backward(MatrixXf&& grad) {
     return model_->backward(std::move(grad));
 }
 
-void Layer::apply_gradients(float learning_rate) {
-    model_->apply_gradients(learning_rate);
-}
-
 void Layer::zero_gradients() {
     model_->zero_gradients();
 }
 
 void Layer::clear_cache() {
     model_->clear_cache();
+}
+
+Linear* Layer::as_linear() {
+    return model_->as_linear();
+}
+
+const Linear* Layer::as_linear() const {
+    return model_->as_linear();
 }
 
 }  // namespace nn

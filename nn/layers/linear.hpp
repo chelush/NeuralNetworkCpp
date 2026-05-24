@@ -7,19 +7,20 @@ namespace nn {
 
 class Linear {
 public:
-    Linear(In in_dim, Out out_dim, Random& rnd, bool mean_loss_gradient_scaling);
+    Linear(In in_dim, Out out_dim, Random& rnd);
 
     MatrixXf forward(MatrixXf&& x);
     MatrixXf backward(MatrixXf&& grad_out);
-    void apply_gradients(float learning_rate);
     void zero_gradients();
     void clear_cache();
+    void apply_parameter_step(const MatrixXf& delta_weights, const VectorXf& delta_bias);
 
     const MatrixXf& weights() const;
     const VectorXf& bias() const;
+    const MatrixXf& grad_weights() const;
+    const VectorXf& grad_bias() const;
 
 private:
-    bool mean_loss_gradient_scaling_;
     MatrixXf W_;
     VectorXf b_;
 

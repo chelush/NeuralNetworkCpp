@@ -7,7 +7,23 @@
 ```bash
 cmake -B build -S .
 cmake --build build
-./build/demo
+./build/demo [epochs] [batch_size] [train_limit] [test_limit] [lr]
 ```
 
-Ожидаемый вывод: `NeuralNetwork (Eigen OK): A*v = [1, 3]`
+По умолчанию `demo` читает:
+
+- `data/mnist_train.csv`
+- `data/mnist_test.csv`
+
+Формат строк: `label,pixel1,...,pixel784`.
+
+Пример запуска:
+
+```bash
+./build/demo 5 64 60000 10000 0.001
+```
+
+Ожидаемый вывод:
+
+- `Epoch N/M, loss = ..., test AUC-ROC = ...`
+- `Final test AUC-ROC: ...`

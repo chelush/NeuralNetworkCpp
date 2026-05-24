@@ -1,5 +1,6 @@
 #pragma once
 
+#include "nn/layers/linear.hpp"
 #include "nn/layers/layer.hpp"
 #include <vector>
 
@@ -18,9 +19,10 @@ public:
 
     MatrixXf forward(MatrixXf activations);
     MatrixXf backward(MatrixXf grad);
-    void apply_gradients(float learning_rate);
     void zero_gradients();
     void clear_cache();
+    std::vector<Linear*> linear_layers();
+    std::vector<const Linear*> linear_layers() const;
 
 private:
     explicit Network(std::vector<Layer>&& layers);

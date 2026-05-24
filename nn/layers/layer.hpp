@@ -5,8 +5,8 @@
 
 namespace nn {
 
+class Activation;
 class Linear;
-class Sigmoid;
 
 class Layer {
     struct Concept;
@@ -16,8 +16,8 @@ class Layer {
     std::unique_ptr<Concept> model_;
 
 public:
+    Layer(Activation&& activation);
     Layer(Linear&& layer);
-    Layer(Sigmoid&& activation);
 
     Layer(Layer&& other) noexcept;
     Layer& operator=(Layer&& other) noexcept;
@@ -27,9 +27,10 @@ public:
 
     MatrixXf forward(MatrixXf&& activations);
     MatrixXf backward(MatrixXf&& grad);
-    void apply_gradients(float learning_rate);
     void zero_gradients();
     void clear_cache();
+    Linear* as_linear();
+    const Linear* as_linear() const;
 };
 
 }  // namespace nn

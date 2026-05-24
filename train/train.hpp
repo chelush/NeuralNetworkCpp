@@ -1,14 +1,21 @@
 #pragma once
 
 #include "core/math/Linalg.h"
+#include <random>
 
 namespace nn {
 
+class DataLoader;
 class MSE;
 class Network;
-class SGD;
+class Optimizer;
 
-void train(Network& net, const MatrixXf& inputs, const MatrixXf& targets, MSE& mse, SGD& sgd,
-           float learning_rate, Eigen::Index steps, Eigen::Index log_every);
+struct TrainOptions {
+    Eigen::Index epochs;
+    Eigen::Index log_every;
+};
+
+float train(Network& net, DataLoader& data, MSE& mse, Optimizer& optimizer, float learning_rate,
+            const TrainOptions& options, std::mt19937& engine);
 
 }  // namespace nn

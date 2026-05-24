@@ -5,18 +5,28 @@
 
 namespace nn {
 
-class Sigmoid {
+enum class ActivationKind {
+    ReLU,
+    Sigmoid,
+    Tanh,
+};
+
+class Activation {
 public:
+    explicit Activation(ActivationKind kind);
+
     MatrixXf forward(MatrixXf&& x);
     MatrixXf backward(MatrixXf&& grad_out);
-    void apply_gradients(float learning_rate);
     void zero_gradients();
     void clear_cache();
 
 private:
     struct Cache {
-        MatrixXf a;
+        MatrixXf input;
+        MatrixXf output;
     };
+
+    ActivationKind kind_;
     std::unique_ptr<Cache> cache_;
 };
 
