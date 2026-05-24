@@ -6,13 +6,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Архитектура (по ТЗ):
-#   core/math   — Linalg.h
-#   nn/layers   — Linear + активации
-#   nn/loss     — MSE / BCE
-#   nn/optim    — SGD / Adam
-#   nn/model    — Network, управление слоями
-#   train       — цикл обучения, батчи, метрики
-#   app         — CLI / демо
+#   core/math    — Linalg.h
+#   nn/layers    — Linear + активации
+#   nn/loss      — MSE / BCE
+#   nn/optim     — SGD / Adam
+#   nn/scheduler — LR scheduler-ы
+#   nn/model     — Network, управление слоями
+#   train        — цикл обучения, батчи, метрики
+#   app          — CLI / демо
 
 # Eigen (header-only)
 include(FetchContent)
@@ -38,6 +39,7 @@ set(SOURCES
   nn/model/network_builder.cpp
   nn/optim/adam.cpp
   nn/optim/sgd.cpp
+  nn/scheduler/lr_schedule.cpp
 )
 
 add_library(neuralnetwork STATIC ${SOURCES})
@@ -51,3 +53,9 @@ endif()
 
 add_executable(demo app/main.cpp)
 target_link_libraries(demo PRIVATE neuralnetwork)
+
+option(NN_BUILD_TESTS "Build unit tests" ON)
+if (NN_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()

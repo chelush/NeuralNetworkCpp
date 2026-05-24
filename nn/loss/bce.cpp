@@ -8,6 +8,7 @@ namespace nn {
 float BCE::value(const MatrixXf& pred, const MatrixXf& target) {
     NN_REQUIRE(pred.rows() == target.rows() && pred.cols() == target.cols(),
                "BCE::value(): pred and target shapes must match");
+    NN_REQUIRE(pred.size() > 0, "BCE::value(): pred and target must be non-empty");
     const float eps = 1e-7f;
     const Eigen::Index n = pred.size();
 
@@ -25,6 +26,7 @@ float BCE::value(const MatrixXf& pred, const MatrixXf& target) {
 MatrixXf BCE::backward(const MatrixXf& pred, const MatrixXf& target) {
     NN_REQUIRE(pred.rows() == target.rows() && pred.cols() == target.cols(),
                "BCE::backward(): pred and target shapes must match");
+    NN_REQUIRE(pred.size() > 0, "BCE::backward(): pred and target must be non-empty");
     const float eps = 1e-7f;
     const Eigen::Index n = pred.size();
 

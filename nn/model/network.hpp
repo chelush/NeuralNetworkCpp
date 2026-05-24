@@ -21,13 +21,15 @@ public:
     MatrixXf backward(MatrixXf grad);
     void zero_gradients();
     void clear_cache();
-    std::vector<Linear*> linear_layers();
-    std::vector<const Linear*> linear_layers() const;
+    const std::vector<Linear*>& linear_layers() const;
 
 private:
     explicit Network(std::vector<Layer>&& layers);
 
+    void rebuild_linear_cache_();
+
     std::vector<Layer> layers_;
+    std::vector<Linear*> linear_cache_;
 };
 
 }  // namespace nn

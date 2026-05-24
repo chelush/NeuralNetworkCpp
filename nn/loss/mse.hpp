@@ -1,13 +1,13 @@
 #pragma once
 
-#include "core/math/Linalg.h"
+#include "nn/loss/loss.hpp"
 
 namespace nn {
 
-class MSE {
+class MSE final : public Loss {
 public:
-    float value(const MatrixXf& pred, const MatrixXf& target);
-    MatrixXf backward(const MatrixXf& pred, const MatrixXf& target);
+    float value(const MatrixXf& pred, const MatrixXf& target) override;
+    MatrixXf backward(const MatrixXf& pred, const MatrixXf& target) override;
 };
 
 }  // namespace nn

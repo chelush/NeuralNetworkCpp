@@ -2,6 +2,7 @@
 #include "nn/loss/mse.hpp"
 #include "nn/model/network_builder.hpp"
 #include "nn/optim/adam.hpp"
+#include "nn/scheduler/lr_schedule.hpp"
 #include "train/train.hpp"
 #include "utils/data_loader.hpp"
 #include <algorithm>
@@ -238,16 +239,18 @@ int main(int argc, char** argv) {
 
     MSE mse;
     Adam adam;
+    CosineAnnealingSchedule schedule(learning_rate, learning_rate * 0.01f, epochs);
     TrainOptions one_epoch{1, 0};
 
     std::cout << "Start training...\n";
     for (Eigen::Index epoch = 0; epoch < epochs; ++epoch) {
-        const float loss = train(net, train_loader, mse, adam, learning_rate, one_epoch, engine);
+        const float lr = schedule.at(epoch);
+        const float loss = train(net, train_loader, mse, adam, lr, one_epoch, engine);
         const double test_auc =
             evaluate_auc_roc(net, test_X, test_Y, static_cast<std::size_t>(batch_size));
 
-        std::cout << "Epoch " << (epoch + 1) << "/" << epochs << ", loss = " << loss
-                  << ", test AUC-ROC = " << test_auc << '\n';
+        std::cout << "Epoch " << (epoch + 1) << "/" << epochs << ", lr = " << lr
+                  << ", loss = " << loss << ", test AUC-ROC = " << test_auc << '\n';
     }
 
     const double final_test_auc =
